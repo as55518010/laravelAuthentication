@@ -15,21 +15,25 @@ class BookReservationTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $respose =  $this->post('/books',[
+        $respose =  $this->post('/books', [
             'title' => 'cool Book Title',
-            'author'=> 'Victor'
+            'author' => 'Victor'
         ]);
-        $respose->assertOk();
-        $this->assertCount(1,Book::all());
+
+        $book = Book::first();
+
+        $this->assertCount(1, Book::all());
+
+        $respose->assertRedirect('/books/' . $book->id);
     }
     /** @test */
     public function a_title_is_required()
     {
         // $this->withoutExceptionHandling();
 
-        $respose =  $this->post('/books',[
+        $respose =  $this->post('/books', [
             'title' => '',
-            'author'=> 'Victor'
+            'author' => 'Victor'
         ]);
 
         $respose->assertSessionHasErrors('title');
@@ -39,9 +43,9 @@ class BookReservationTest extends TestCase
     {
         // $this->withoutExceptionHandling();
 
-        $respose =  $this->post('/books',[
+        $respose =  $this->post('/books', [
             'title' => 'Cool Title',
-            'author'=> ''
+            'author' => ''
         ]);
 
         $respose->assertSessionHasErrors('author');
@@ -51,19 +55,40 @@ class BookReservationTest extends TestCase
     {
         $this->withoutExceptionHandling();
 
-        $this->post('/books',[
+        $this->post('/books', [
             'title' => 'cool Book Title',
-            'author'=> 'Victor'
+            'author' => 'Victor'
         ]);
 
         $book = Book::first();
 
-        $respose = $this->patch('/books/'.$book->id,[
-            'title'=>'New Title',
-            'author'=>'New Author'
+        $respose = $this->patch('/books/' . $book->id, [
+            'title' => 'New Title',
+            'author' => 'New Author'
         ]);
 
-        $this->assertEquals('New Title',Book::first()->title);
-        $this->assertEquals('New Author',Book::first()->author);
+        $this->assertEquals('New Title', Book::first()->title);
+        $this->assertEquals('New Author', Book::first()->author);
+
+        $respose->assertRedirect('/books/' . $book->id);
+    }
+    /** @test */
+    public function a_book_can_be_delete()
+    {
+        $this->withoutExceptionHandling();
+
+        $this->post('/books', [
+            'title' => 'cool Book Title',
+            'author' => 'Victor'
+        ]);
+        $this->assertCount(1, Book::all());
+
+        $book = Book::first();
+
+        $respose = $this->delete('/books/' . $book->id);
+
+        $this->assertCount(0, Book::all());
+
+        $respose->assertRedirect('/books');
     }
 }
